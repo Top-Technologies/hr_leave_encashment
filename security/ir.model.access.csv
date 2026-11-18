@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_encashment_user,encashment.user,model_hr_leave_encashment,base.group_user,1,1,1,0
+access_encashment_officer,encashment.officer,model_hr_leave_encashment,hr_holidays.group_hr_holidays_user,1,1,1,0
+access_encashment_manager,encashment.manager,model_hr_leave_encashment,hr_holidays.group_hr_holidays_manager,1,1,1,1
+access_encashment_payroll,encashment.payroll,model_hr_leave_encashment,hr_payroll.group_hr_payroll_user,1,1,0,0
+access_encashment_line_user,encashment.line.user,model_hr_leave_encashment_line,base.group_user,1,0,0,0
+access_encashment_line_officer,encashment.line.officer,model_hr_leave_encashment_line,hr_holidays.group_hr_holidays_user,1,1,1,1
+access_encashment_line_manager,encashment.line.manager,model_hr_leave_encashment_line,hr_holidays.group_hr_holidays_manager,1,1,1,1
+access_expiry_log_user,expiry.log.user,model_hr_leave_expiry_log,base.group_user,1,0,0,0
+access_expiry_log_officer,expiry.log.officer,model_hr_leave_expiry_log,hr_holidays.group_hr_holidays_user,1,1,1,1
+access_expiry_log_manager,expiry.log.manager,model_hr_leave_expiry_log,hr_holidays.group_hr_holidays_manager,1,1,1,1
+access_consumption_user,consumption.user,model_hr_leave_allocation_consumption,base.group_user,1,0,0,0
+access_consumption_officer,consumption.officer,model_hr_leave_allocation_consumption,hr_holidays.group_hr_holidays_user,1,1,1,1
+access_consumption_manager,consumption.manager,model_hr_leave_allocation_consumption,hr_holidays.group_hr_holidays_manager,1,1,1,1
+access_payroll_expiry_wizard,payroll.expiry.wizard.manager,model_hr_leave_payroll_expiry_wizard,hr_holidays.group_hr_holidays_manager,1,1,1,1

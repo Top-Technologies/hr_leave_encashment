@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Leave Allocation Form View -->
+    <record id="hr_leave_allocation_view_form_inherit_enc" model="ir.ui.view">
+        <field name="name">hr.leave.allocation.form.inherit.encashment</field>
+        <field name="model">hr.leave.allocation</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_allocation_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="2-Year Expiry &amp; Balances" name="expiry_balances">
+                    <group>
+                        <field name="validity_years"/>
+                        <field name="date_to" string="Allocation Expiry Date"/>
+                        <field name="is_expired" widget="boolean_toggle"/>
+                        <field name="expiry_processed"/>
+                    </group>
+                    <group>
+                        <field name="leaves_taken" string="Utilized Days"/>
+                        <field name="encashed_days"/>
+                        <field name="expired_days"/>
+                        <field name="remaining_balance" decoration-bf="1"/>
+                    </group>
+                </group>
+                <notebook>
+                    <page string="FIFO Leave Consumptions" name="consumptions">
+                        <field name="consumption_ids" readonly="1">
+                            <list string="FIFO Consumptions">
+                                <field name="leave_id"/>
+                                <field name="consumption_date"/>
+                                <field name="consumed_days" sum="Total Consumed Days"/>
+                                <field name="state" widget="badge"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="Encashments" name="encashments">
+                        <field name="encashment_line_ids" readonly="1">
+                            <list string="Encashment Deductions">
+                                <field name="encashment_id"/>
+                                <field name="days" sum="Total Encashed"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit Leave Allocation Tree View -->
+    <record id="hr_leave_allocation_view_tree_inherit_enc" model="ir.ui.view">
+        <field name="name">hr.leave.allocation.list.inherit.encashment</field>
+        <field name="model">hr.leave.allocation</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_allocation_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_from']" position="after">
+                <field name="date_to" string="Expiry Date" optional="show"/>
+                <field name="encashed_days" optional="show"/>
+                <field name="expired_days" optional="show"/>
+                <field name="remaining_balance" optional="show" decoration-bf="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit Leave Request Form View to display FIFO Consumptions -->
+    <record id="hr_leave_view_form_inherit_fifo" model="ir.ui.view">
+        <field name="name">hr.leave.form.inherit.fifo</field>
+        <field name="model">hr.leave</field>
+        <field name="inherit_id" ref="hr_holidays.hr_leave_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="Allocation Consumption (FIFO)" name="fifo_consumptions">
+                        <field name="consumption_ids" readonly="1">
+                            <list string="Consumed Allocations">
+                                <field name="allocation_id"/>
+                                <field name="allocation_expiry_date"/>
+                                <field name="consumed_days" sum="Total Consumed Days"/>
+                                <field name="consumption_date"/>
+                                <field name="state" widget="badge"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- FIFO Allocation Consumption Views -->
+    <record id="hr_leave_allocation_consumption_view_tree" model="ir.ui.view">
+        <field name="name">hr.leave.allocation.consumption.list</field>
+        <field name="model">hr.leave.allocation.consumption</field>
+        <field name="arch" type="xml">
+            <list string="FIFO Leave Consumptions" create="false" edit="false">
+                <field name="consumption_date"/>
+                <field name="employee_id"/>
+                <field name="leave_type_id"/>
+                <field name="leave_id"/>
+                <field name="allocation_id"/>
+                <field name="consumed_days" sum="Total Consumed Days"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'validate'"
+                       decoration-danger="state in ('refuse', 'cancel')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="hr_leave_allocation_consumption_view_search" model="ir.ui.view">
+        <field name="name">hr.leave.allocation.consumption.search</field>
+        <field name="model">hr.leave.allocation.consumption</field>
+        <field name="arch" type="xml">
+            <search string="Search FIFO Consumptions">
+                <field name="employee_id"/>
+                <field name="leave_type_id"/>
+                <field name="allocation_id"/>
+                <field name="leave_id"/>
+                <filter string="Approved" name="approved" domain="[('state', '=', 'validate')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Employee" name="group_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Time Off Type" name="group_leave_type" context="{'group_by': 'leave_type_id'}"/>
+                    <filter string="Allocation" name="group_allocation" context="{'group_by': 'allocation_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_hr_leave_allocation_consumption" model="ir.actions.act_window">
+        <field name="name">FIFO Leave Consumptions</field>
+        <field name="res_model">hr.leave.allocation.consumption</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="hr_leave_allocation_consumption_view_search"/>
+        <field name="context">{'search_default_approved': 1}</field>
+    </record>
+</odoo>

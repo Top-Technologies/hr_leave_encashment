@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Leave Type Form Inheritance -->
+    <record id="hr_leave_type_form_inherit_enc" model="ir.ui.view">
+        <field name="name">hr.leave.type.form.encashment</field>
+        <field name="model">hr.leave.type</field>
+        <field name="inherit_id" ref="hr_holidays.edit_holiday_status_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='requires_allocation']" position="after">
+                <field name="validity_years"/>
+                <field name="encashable"/>
+                <field name="fifo_enabled"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Leave Encashment Form -->
+    <record id="hr_leave_encashment_form" model="ir.ui.view">
+        <field name="name">hr.leave.encashment.form</field>
+        <field name="model">hr.leave.encashment</field>
+        <field name="arch" type="xml">
+            <form string="Leave Encashment">
+                <header>
+                    <button name="action_submit" string="Submit" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve" type="object"
+                            class="btn-success" invisible="state != 'submitted'"
+                            groups="hr_holidays.group_hr_holidays_user"/>
+                    <button name="%(action_hr_leave_payroll_expiry_wizard)d"
+                            string="Expire Encashment"
+                            type="action"
+                            class="btn-danger"
+                            invisible="state not in ('approved', 'sent_to_payroll') or payroll_status in ('paid', 'expired')"
+                            groups="hr_holidays.group_hr_holidays_manager"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ('paid', 'cancelled', 'expired')"/>
+                    <button name="action_draft" string="Reset to Draft" type="object"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,approved,sent_to_payroll,paid"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Expired" bg_color="text-bg-danger" invisible="state != 'expired'"/>
+                    <widget name="web_ribbon" title="Paid" bg_color="text-bg-success" invisible="state != 'paid'"/>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Employee &amp; Time Off">
+                            <field name="employee_id" readonly="state != 'draft'"/>
+                            <field name="department_id"/>
+                            <field name="job_id"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                            <field name="holiday_status_id" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Leave Balance Information">
+                            <field name="total_allocated_days"/>
+                            <field name="previously_utilized_days"/>
+                            <field name="expired_days"/>
+                            <field name="days_available" decoration-bf="1"/>
+                            <field name="days_to_encash" readonly="state not in ('draft', 'submitted')"/>
+                            <field name="remaining_balance_after" decoration-bf="1"/>
+                        </group>
+                    </group>
+                    <group string="Payroll Information">
+                        <group>
+                            <field name="basic_salary"/>
+                            <field name="rate_divisor"/>
+                            <field name="daily_rate"/>
+                            <field name="amount" decoration-bf="1"/>
+                            <field name="original_amount" invisible="state != 'expired'"/>
+                            <field name="expired_amount" invisible="state != 'expired'"/>
+                        </group>
+                        <group>
+                            <field name="payslip_id"/>
+                            <field name="payroll_status" widget="badge"
+                                   decoration-info="payroll_status == 'draft'"
+                                   decoration-primary="payroll_status == 'confirmed'"
+                                   decoration-success="payroll_status == 'paid'"
+                                   decoration-danger="payroll_status == 'expired'"/>
+                            <field name="payroll_expiry_date" readonly="state not in ('draft', 'submitted')"/>
+                            <field name="approved_date" invisible="not approved_date"/>
+                        </group>
+                    </group>
+                    <group string="Audit &amp; Expiry Information" invisible="state != 'expired'">
+                        <group>
+                            <field name="expired_by"/>
+                            <field name="expired_date"/>
+                        </group>
+                        <group>
+                            <field name="expiry_reason"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="FIFO Allocation Deduction Lines" name="fifo_lines">
+                            <field name="line_ids" readonly="1">
+                                <list string="FIFO Allocation Deductions">
+                                    <field name="allocation_id"/>
+                                    <field name="date_to" string="Allocation Expiry Date"/>
+                                    <field name="days" sum="Total Encashed Days"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Leave Encashment List -->
+    <record id="hr_leave_encashment_list" model="ir.ui.view">
+        <field name="name">hr.leave.encashment.list</field>
+        <field name="model">hr.leave.encashment</field>
+        <field name="arch" type="xml">
+            <list string="Leave Encashments" decoration-info="state == 'draft'" decoration-warning="state == 'submitted'" decoration-success="state in ('approved', 'paid')" decoration-danger="state in ('cancelled', 'expired')">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="department_id" optional="show"/>
+                <field name="holiday_status_id"/>
+                <field name="date"/>
+                <field name="days_to_encash"/>
+                <field name="amount"/>
+                <field name="original_amount" optional="hide"/>
+                <field name="payslip_id"/>
+                <field name="payroll_status" widget="badge"
+                       decoration-info="payroll_status == 'draft'"
+                       decoration-primary="payroll_status == 'confirmed'"
+                       decoration-success="payroll_status == 'paid'"
+                       decoration-danger="payroll_status == 'expired'"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'submitted'"
+                       decoration-primary="state == 'sent_to_payroll'"
+                       decoration-success="state in ('approved', 'paid')"
+                       decoration-danger="state in ('cancelled', 'expired')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Leave Encashment Search -->
+    <record id="hr_leave_encashment_search" model="ir.ui.view">
+        <field name="name">hr.leave.encashment.search</field>
+        <field name="model">hr.leave.encashment</field>
+        <field name="arch" type="xml">
+            <search string="Search Encashments">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="holiday_status_id"/>
+                <filter string="To Approve" name="to_approve" domain="[('state', '=', 'submitted')]"/>
+                <filter string="Approved" name="approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="Sent to Payroll" name="sent_to_payroll" domain="[('state', '=', 'sent_to_payroll')]"/>
+                <filter string="Paid" name="paid" domain="[('state', '=', 'paid')]"/>
+                <separator/>
+                <filter string="Unpaid (Approved)" name="unpaid" domain="[('state', 'in', ('approved', 'sent_to_payroll')), ('payroll_status', '!=', 'paid')]"/>
+                <filter string="Expired" name="expired" domain="[('state', '=', 'expired')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Employee" name="group_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Department" name="group_department" context="{'group_by': 'department_id'}"/>
+                    <filter string="Time Off Type" name="group_type" context="{'group_by': 'holiday_status_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Payroll Status" name="group_payroll_status" context="{'group_by': 'payroll_status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Dedicated Tree View for Payroll Expiry -->
+    <record id="hr_leave_encashment_view_tree_unpaid" model="ir.ui.view">
+        <field name="name">hr.leave.encashment.list.unpaid</field>
+        <field name="model">hr.leave.encashment</field>
+        <field name="arch" type="xml">
+            <list string="Unpaid Approved Encashments" create="false" edit="false"
+                  decoration-danger="payroll_expiry_date and payroll_expiry_date &lt; current_date"
+                  decoration-warning="payroll_expiry_date and payroll_expiry_date &gt;= current_date">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="department_id" optional="show"/>
+                <field name="holiday_status_id"/>
+                <field name="approved_date"/>
+                <field name="payroll_expiry_date" widget="remaining_days"/>
+                <field name="days_to_encash"/>
+                <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="payslip_id" optional="show"/>
+                <field name="payroll_status" widget="badge"
+                       decoration-info="payroll_status == 'draft'"
+                       decoration-primary="payroll_status == 'confirmed'"
+                       decoration-warning="payroll_status == 'not_sent'"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'approved'"
+                       decoration-primary="state == 'sent_to_payroll'"/>
+                <button name="%(action_hr_leave_payroll_expiry_wizard)d"
+                        string="Expire"
+                        type="action"
+                        class="btn btn-outline-danger btn-sm"
+                        icon="fa-times-circle"
+                        groups="hr_holidays.group_hr_holidays_manager"
+                        title="Expire this unpaid encashment and set amount to zero"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="hr_leave_encashment_action" model="ir.actions.act_window">
+        <field name="name">Leave Encashment</field>
+        <field name="res_model">hr.leave.encashment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="hr_leave_encashment_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new leave encashment!
+            </p>
+            <p>
+                Convert unused employee leave balances into payroll using FIFO deduction.
+            </p>
+        </field>
+    </record>
+
+    <record id="hr_leave_encashment_action_unpaid" model="ir.actions.act_window">
+        <field name="name">Payroll Expiry</field>
+        <field name="res_model">hr.leave.encashment</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="hr_leave_encashment_view_tree_unpaid"/>
+        <field name="domain">[('state', 'in', ('approved', 'sent_to_payroll')), ('payroll_status', '!=', 'paid')]</field>
+        <field name="search_view_id" ref="hr_leave_encashment_search"/>
+        <field name="context">{'search_default_unpaid': 1, 'create': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No approved unpaid encashments.
+            </p>
+            <p>
+                Approved leave encashments pending payroll payment appear here for monitoring and manual expiry.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menus under Time Off -->
+    <menuitem id="menu_leave_encashment_root"
+              name="Leave Encashment"
+              parent="hr_holidays.menu_hr_holidays_root"
+              sequence="45"/>
+
+    <menuitem id="menu_leave_encashment"
+              name="All Encashments"
+              parent="menu_leave_encashment_root"
+              action="hr_leave_encashment_action"
+              sequence="1"/>
+
+    <menuitem id="menu_leave_encashment_unpaid"
+              name="Payroll Expiry"
+              parent="menu_leave_encashment_root"
+              action="hr_leave_encashment_action_unpaid"
+              sequence="2"
+              groups="hr_holidays.group_hr_holidays_manager"/>
+</odoo>

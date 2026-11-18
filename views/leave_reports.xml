@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 1. Leave Allocation Report Pivot & List -->
+    <record id="hr_leave_allocation_report_pivot" model="ir.ui.view">
+        <field name="name">hr.leave.allocation.report.pivot</field>
+        <field name="model">hr.leave.allocation</field>
+        <field name="arch" type="xml">
+            <pivot string="Leave Allocation Analysis" sample="1">
+                <field name="employee_id" type="row"/>
+                <field name="holiday_status_id" type="col"/>
+                <field name="number_of_days" type="measure"/>
+                <field name="leaves_taken" type="measure" string="Utilized Days"/>
+                <field name="encashed_days" type="measure"/>
+                <field name="expired_days" type="measure"/>
+                <field name="remaining_balance" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_report_leave_allocation" model="ir.actions.act_window">
+        <field name="name">Leave Allocation Report</field>
+        <field name="res_model">hr.leave.allocation</field>
+        <field name="view_mode">list,pivot,form</field>
+        <field name="view_id" ref="hr_holidays.hr_leave_allocation_view_tree"/>
+        <field name="context">{'search_default_year': 1, 'search_default_group_employee': 1}</field>
+    </record>
+
+    <!-- 2. FIFO Utilization Report Pivot & List -->
+    <record id="hr_leave_allocation_consumption_pivot" model="ir.ui.view">
+        <field name="name">hr.leave.allocation.consumption.pivot</field>
+        <field name="model">hr.leave.allocation.consumption</field>
+        <field name="arch" type="xml">
+            <pivot string="FIFO Leave Utilization Analysis" sample="1">
+                <field name="employee_id" type="row"/>
+                <field name="leave_type_id" type="col"/>
+                <field name="consumed_days" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_report_fifo_utilization" model="ir.actions.act_window">
+        <field name="name">FIFO Utilization Report</field>
+        <field name="res_model">hr.leave.allocation.consumption</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="view_id" ref="hr_leave_allocation_consumption_view_tree"/>
+        <field name="context">{'search_default_approved': 1, 'search_default_group_employee': 1}</field>
+    </record>
+
+    <!-- 3. Leave Encashment Report Pivot & List -->
+    <record id="hr_leave_encashment_report_pivot" model="ir.ui.view">
+        <field name="name">hr.leave.encashment.report.pivot</field>
+        <field name="model">hr.leave.encashment</field>
+        <field name="arch" type="xml">
+            <pivot string="Leave Encashment Analysis" sample="1">
+                <field name="employee_id" type="row"/>
+                <field name="payroll_status" type="col"/>
+                <field name="days_to_encash" type="measure"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_report_leave_encashment" model="ir.actions.act_window">
+        <field name="name">Leave Encashment Report</field>
+        <field name="res_model">hr.leave.encashment</field>
+        <field name="view_mode">list,pivot,form</field>
+        <field name="view_id" ref="hr_leave_encashment_list"/>
+        <field name="context">{'search_default_group_employee': 1}</field>
+    </record>
+
+    <!-- Menus under Time Off -> Reporting -->
+    <menuitem id="menu_report_leave_allocation"
+              name="Leave Allocations"
+              parent="hr_holidays.menu_hr_holidays_report"
+              action="action_report_leave_allocation"
+              sequence="20"/>
+
+    <menuitem id="menu_report_fifo_utilization"
+              name="FIFO Utilization"
+              parent="hr_holidays.menu_hr_holidays_report"
+              action="action_report_fifo_utilization"
+              sequence="21"/>
+
+    <menuitem id="menu_report_leave_encashment"
+              name="Leave Encashments"
+              parent="hr_holidays.menu_hr_holidays_report"
+              action="action_report_leave_encashment"
+              sequence="22"/>
+</odoo>

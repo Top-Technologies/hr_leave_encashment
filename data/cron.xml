@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="cron_log_expired_allocations" model="ir.cron">
+            <field name="name">Leave: log expired allocations</field>
+            <field name="model_id" ref="hr_holidays.model_hr_leave_allocation"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_log_expired_allocations()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+        </record>
+
+        <record id="cron_generate_encashment_drafts" model="ir.cron">
+            <field name="name">Leave: create encashment drafts before expiry</field>
+            <field name="model_id" ref="hr_holidays.model_hr_leave_allocation"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_generate_encashment_drafts(days_before=30)</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+        </record>
+
+        <record id="cron_expire_unpaid_encashment" model="ir.cron">
+            <field name="name">Leave: expire unpaid approved encashments</field>
+            <field name="model_id" ref="model_hr_leave_encashment"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_expire_unpaid(months=3)</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+        </record>
+    </data>
+</odoo>
